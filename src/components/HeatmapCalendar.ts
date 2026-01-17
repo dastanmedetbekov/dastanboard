@@ -26,11 +26,16 @@ export function createHeatmapCalendar(container: HTMLElement, options: HeatmapOp
 		if (item.count > maxCount) maxCount = item.count;
 	}
 	
-	// Calculate date range
+	// Calculate date range - END at current date, START months ago
 	const endDate = new Date();
+	endDate.setHours(23, 59, 59, 999); // End of today
+	
 	const startDate = new Date();
 	startDate.setMonth(startDate.getMonth() - months);
-	startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
+	// Align to Sunday of that week
+	const dayOfWeek = startDate.getDay();
+	startDate.setDate(startDate.getDate() - dayOfWeek);
+	startDate.setHours(0, 0, 0, 0);
 	
 	// Calculate streaks
 	const activeDates = data.filter(d => d.count > 0).map(d => d.date);
@@ -102,33 +107,45 @@ export function createHeatmapCalendar(container: HTMLElement, options: HeatmapOp
 	// Grid
 	const grid = gridContainer.createDiv({ cls: 'vd-heatmap-grid' });
 	
-	// Generate cells
-	currentDate.setTime(startDate.getTime());
+	// Generate cells - iterate through each week
+	const iterDate = new Date(startDate);
 	
-	while (currentDate <= endDate) {
+	while (iterDate <= endDate) {
 		const weekColumn = grid.createDiv({ cls: 'vd-heatmap-week' });
 		
 		for (let day = 0; day < 7; day++) {
-			const dateKey = formatDateKey(currentDate);
+			const cellDate = new Date(iterDate);
+			const dateKey = formatDateKey(cellDate);
 			const count = dateMap.get(dateKey) || 0;
 			const level = getActivityLevel(count, maxCount);
 			
+			// Check if this date is in the future
+			const isFuture = cellDate > new Date();
+			
 			const cell = weekColumn.createDiv({ 
-				cls: `vd-heatmap-cell vd-level-${level}` 
+				cls: `vd-heatmap-cell vd-level-${isFuture ? 0 : level}` 
 			});
 			
-			cell.style.backgroundColor = getHeatmapColor(level, style);
+			if (isFuture) {
+				cell.addClass('vd-heatmap-cell-future');
+				cell.style.backgroundColor = 'var(--background-secondary)';
+				cell.style.opacity = '0.3';
+			} else {
+				cell.style.backgroundColor = getHeatmapColor(level, style);
+			}
 			
 			// Tooltip
-			const tooltipText = count > 0 
-				? `${count} ${t.contributions} on ${dateKey}`
-				: `${t.noActivity} on ${dateKey}`;
+			const tooltipText = isFuture 
+				? dateKey
+				: count > 0 
+					? `${count} ${t.contributions} on ${dateKey}`
+					: `${t.noActivity} on ${dateKey}`;
 			cell.setAttribute('aria-label', tooltipText);
 			cell.setAttribute('data-date', dateKey);
 			cell.setAttribute('data-count', String(count));
 			
-			// Click handler
-			if (onCellClick) {
+			// Click handler (only for past dates)
+			if (onCellClick && !isFuture) {
 				cell.addEventListener('click', () => onCellClick(dateKey, count));
 			}
 			
@@ -141,8 +158,14 @@ export function createHeatmapCalendar(container: HTMLElement, options: HeatmapOp
 				hideTooltip();
 			});
 			
-			currentDate.setDate(currentDate.getDate() + 1);
+			iterDate.setDate(iterDate.getDate() + 1);
+			
+			// Stop if we've gone past today
+			if (iterDate > endDate) break;
 		}
+		
+		// Stop if we've gone past today
+		if (iterDate > endDate) break;
 	}
 	
 	// Legend

@@ -13,7 +13,7 @@ export default class VaultDashboardPlugin extends Plugin {
 
 		// Register the Bases view
 		const registered = this.registerBasesView(DASHBOARD_VIEW_TYPE, {
-			name: 'Dashboard',
+			name: 'Dastanboard',
 			icon: 'lucide-layout-dashboard',
 			factory: (controller, containerEl) => {
 				return new DashboardView(controller, containerEl, this.app, this.settings);
@@ -22,12 +22,12 @@ export default class VaultDashboardPlugin extends Plugin {
 		});
 
 		if (!registered) {
-			console.log('Vault Dashboard: Bases not enabled in this vault');
+			console.log('Dastanboard: Bases not enabled in this vault');
 		}
 
 		// Add ribbon icon for quick access
-		this.addRibbonIcon('layout-dashboard', 'Vault Dashboard', () => {
-			new Notice('Open a Bases file and select Dashboard view');
+		this.addRibbonIcon('layout-dashboard', 'Dastanboard', () => {
+			new Notice('Open a Bases file and select Dastanboard view');
 		});
 
 		// Add settings tab
@@ -36,15 +36,36 @@ export default class VaultDashboardPlugin extends Plugin {
 		// Add command
 		this.addCommand({
 			id: 'open-vault-dashboard',
-			name: 'Open Vault Dashboard',
+			name: 'Open Dastanboard',
 			callback: () => {
-				new Notice('Create or open a Bases file, then select Dashboard from the view menu');
+				new Notice('Create or open a Bases file, then select Dastanboard from the view menu');
 			}
 		});
+		
+		// Auto-open Base if configured
+		if (this.settings.autoOpenBase) {
+			this.app.workspace.onLayoutReady(() => {
+				this.autoOpenBase();
+			});
+		}
 	}
 
 	onunload() {
 		// Cleanup if needed
+	}
+	
+	async autoOpenBase() {
+		const basePath = this.settings.autoOpenBase;
+		if (!basePath) return;
+		
+		const file = this.app.vault.getAbstractFileByPath(basePath);
+		if (!file) {
+			new Notice(`Dastanboard: Base file not found: ${basePath}`);
+			return;
+		}
+		
+		// Open the Base file
+		await this.app.workspace.getLeaf('tab').openFile(file as any);
 	}
 
 	async loadSettings() {
@@ -305,6 +326,20 @@ class VaultDashboardSettingTab extends PluginSettingTab {
 
 		// Advanced Section
 		containerEl.createEl('h2', { text: 'Advanced' });
+		
+		new Setting(containerEl)
+			.setName(this.t.autoOpenBase)
+			.setDesc(this.t.autoOpenBaseDesc)
+			.addText(text => {
+				text
+					.setPlaceholder('path/to/dashboard.base')
+					.setValue(settings.autoOpenBase)
+					.onChange(async (value) => {
+						settings.autoOpenBase = value.trim();
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.style.width = '100%';
+			});
 
 		new Setting(containerEl)
 			.setName(this.t.excludePatterns)

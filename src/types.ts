@@ -102,6 +102,7 @@ export interface DashboardSettings {
 	excludePatterns: string[];
 	refreshInterval: number;
 	heatmapMonths: number;
+	autoOpenBase: string; // Path to Base file to auto-open on startup
 }
 
 export const DEFAULT_SETTINGS: DashboardSettings = {
@@ -120,4 +121,5 @@ export const DEFAULT_SETTINGS: DashboardSettings = {
 	excludePatterns: [],
 	refreshInterval: 0,
 	heatmapMonths: 12,
+	autoOpenBase: '', // Empty means disabled
 };

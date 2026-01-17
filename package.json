@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-vault-dashboard",
-	"version": "1.0.0",
-	"description": "A comprehensive statistics dashboard for your Obsidian vault",
+	"name": "dastanboard",
+	"version": "0.1.0-beta",
+	"description": "A powerful statistics dashboard for your Obsidian vault",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -14,10 +14,11 @@
 		"dashboard",
 		"statistics",
 		"analytics",
-		"bases"
+		"bases",
+		"dastanboard"
 	],
-	"author": "Dastan",
-	"license": "MIT",
+	"author": "Dastan Medetbekov",
+	"license": "GPL-3.0",
 	"devDependencies": {
 		"@types/node": "^20.10.0",
 		"builtin-modules": "^3.3.0",

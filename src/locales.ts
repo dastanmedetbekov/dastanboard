@@ -98,6 +98,8 @@ export interface Translations {
 	excludePatternsDesc: string;
 	heatmapMonths: string;
 	heatmapMonthsDesc: string;
+	autoOpenBase: string;
+	autoOpenBaseDesc: string;
 	
 	// Days of week
 	monday: string;
@@ -220,8 +222,8 @@ export const EN: Translations = {
 	excludePatterns: 'Exclude Patterns',
 	excludePatternsDesc: 'Folder/file patterns to exclude (comma-separated)',
 	heatmapMonths: 'Heatmap Months',
-	heatmapMonthsDesc: 'Number of months to show in heatmap',
-	
+	heatmapMonthsDesc: 'Number of months to show in heatmap',	autoOpenBase: 'Auto-open Base on startup',
+	autoOpenBaseDesc: 'Path to Base file to open automatically (leave empty to disable)',	
 	// Days of week
 	monday: 'Mon',
 	tuesday: 'Tue',
@@ -344,6 +346,8 @@ export const RU: Translations = {
 	excludePatternsDesc: 'Паттерны папок/файлов для исключения (через запятую)',
 	heatmapMonths: 'Месяцев в Тепловой Карте',
 	heatmapMonthsDesc: 'Количество месяцев для отображения',
+	autoOpenBase: 'Автооткрытие Base при запуске',
+	autoOpenBaseDesc: 'Путь к Base файлу для автооткрытия (оставьте пустым, чтобы отключить)',
 	
 	// Days of week
 	monday: 'Пн',
