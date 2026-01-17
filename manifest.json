@@ -1,0 +1,11 @@
+{
+	"id": "vault-dashboard",
+	"name": "Vault Dashboard",
+	"version": "1.0.0",
+	"minAppVersion": "1.10.0",
+	"description": "A comprehensive statistics dashboard for your Obsidian vault. View link density, connectivity scores, activity heatmaps, tag clouds, and more - all in a beautiful GitHub-style interface.",
+	"author": "Dastan",
+	"authorUrl": "https://github.com/dastanmedetbekov",
+	"fundingUrl": "",
+	"isDesktopOnly": false
+}
