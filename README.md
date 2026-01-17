@@ -105,7 +105,7 @@
 3. Click **Install**, then **Enable**
 
 ### Manual Installation
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/Dastan/obsidian-vault-dashboard/releases)
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/dastanmedetbekov/obsidian-vault-dashboard/releases)
 2. Create folder: `<vault>/.obsidian/plugins/vault-dashboard/`
 3. Copy the downloaded files into this folder
 4. Reload Obsidian and enable the plugin
@@ -181,7 +181,7 @@ Want to add your language? Contributions welcome!
 
 ```bash
 # Clone the repository
-git clone https://github.com/Dastan/obsidian-vault-dashboard.git
+git clone https://github.com/dastanmedetbekov/obsidian-vault-dashboard.git
 cd obsidian-vault-dashboard
 
 # Install dependencies
