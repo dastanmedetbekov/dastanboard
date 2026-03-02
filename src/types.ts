@@ -40,6 +40,28 @@ export interface VaultStatistics {
 	
 	// Folder stats
 	folderDistribution: FolderInfo[];
+
+	// ── New enriched stats ──
+	vaultHealthScore: number;          // 0–100 composite score
+	estimatedReadingMinutes: number;   // Total words / 200 wpm
+	writingStreak: WritingStreak;
+	recentNotes: NoteInfo[];           // Last 5 modified notes
+	achievements: Achievement[];
+}
+
+export interface WritingStreak {
+	current: number;   // consecutive days up to today
+	longest: number;   // longest streak ever
+	lastActive: string; // ISO date string
+}
+
+export interface Achievement {
+	id: string;
+	icon: string;
+	name: string;
+	description: string;
+	unlocked: boolean;
+	tier: 'bronze' | 'silver' | 'gold' | 'platinum';
 }
 
 export interface NoteInfo {

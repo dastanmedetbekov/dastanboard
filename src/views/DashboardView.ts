@@ -15,6 +15,8 @@ import {
 	createFolderDistribution,
 	createTopNotesList
 } from '../components/Charts';
+import { createSharePanel } from '../components/ShareCard';
+import { createAchievementsSection } from '../components/AchievementBadge';
 import { formatNumber, formatPercent } from '../utils/helpers';
 
 export const DASHBOARD_VIEW_TYPE = 'vault-dashboard-view';
@@ -96,13 +98,16 @@ export class DashboardView extends BasesView {
 		if (!this.stats) return;
 		
 		const { settings, t, stats } = this;
+		const vaultName = (this.app.vault as any).getName?.() ?? 'My Vault';
 		
-		// Dashboard header
-		const header = this.containerEl.createDiv({ cls: 'vd-header' });
-		header.createEl('h2', { text: t.dashboard, cls: 'vd-title' });
-		
+		// ── Hero header ──────────────────────────────────────────────────────
+		this.renderHeroHeader(vaultName);
+
 		// Main content area
 		const content = this.containerEl.createDiv({ cls: 'vd-content' });
+
+		// ── Vault Health + Streak quick-stats ─────────────────────────────────
+		this.renderQuickStats(content);
 		
 		// General Statistics Section
 		if (settings.showGeneralStats) {
@@ -137,6 +142,108 @@ export class DashboardView extends BasesView {
 		// Folder Distribution Section
 		if (settings.showFolders) {
 			this.renderFolderStats(content);
+		}
+
+		// ── Recently modified notes ───────────────────────────────────────────
+		this.renderRecentNotes(content);
+
+		// ── Achievements ─────────────────────────────────────────────────────
+		const ach = this.createSection(content, t.achievements, 'award');
+		createAchievementsSection(ach, stats.achievements, t);
+
+		// ── Share panel ───────────────────────────────────────────────────────
+		const shareSection = this.createSection(content, t.shareTitle, 'share');
+		createSharePanel(shareSection, stats, vaultName, t);
+	}
+
+	/** Gradient hero banner at the very top */
+	private renderHeroHeader(vaultName: string): void {
+		const { t, stats } = this;
+		const hero = this.containerEl.createDiv({ cls: 'vd-hero' });
+
+		// Left: vault identity
+		const identity = hero.createDiv({ cls: 'vd-hero-identity' });
+		identity.createDiv({ cls: 'vd-hero-vault-name', text: vaultName });
+		identity.createDiv({ cls: 'vd-hero-subtitle', text: t.dashboard });
+
+		// Center: health gauge
+		const gauge = hero.createDiv({ cls: 'vd-health-gauge' });
+		this.renderHealthGauge(gauge, stats!.vaultHealthScore);
+
+		// Right: streak badge
+		const streakBadge = hero.createDiv({ cls: 'vd-hero-streak' });
+		streakBadge.createDiv({ cls: 'vd-hero-streak-icon', text: '🔥' });
+		streakBadge.createDiv({ cls: 'vd-hero-streak-value', text: String(stats!.writingStreak.current) });
+		streakBadge.createDiv({ cls: 'vd-hero-streak-label', text: t.currentStreak });
+	}
+
+	/** SVG circular health gauge */
+	private renderHealthGauge(container: HTMLElement, score: number): void {
+		const { t } = this;
+		const r = 36;
+		const circ = 2 * Math.PI * r;
+		const fill = circ * (score / 100);
+		const gap  = circ - fill;
+
+		const label = score >= 80 ? '💎' : score >= 60 ? '⚡' : score >= 40 ? '🌱' : '🔧';
+		const color = score >= 80 ? '#a855f7' : score >= 60 ? '#3b82f6' : score >= 40 ? '#22c55e' : '#f59e0b';
+
+		const svg = `
+<svg width="100" height="100" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+  <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+    stroke-linecap="round"
+    stroke-dasharray="${fill} ${gap}"
+    transform="rotate(-90 50 50)"/>
+</svg>`;
+
+		const wrap = container.createDiv({ cls: 'vd-gauge-wrap' });
+		wrap.innerHTML = svg;
+
+		const inner = wrap.createDiv({ cls: 'vd-gauge-inner' });
+		inner.createDiv({ cls: 'vd-gauge-emoji', text: label });
+		inner.createDiv({ cls: 'vd-gauge-value', text: String(score) });
+
+		container.createDiv({ cls: 'vd-gauge-label', text: t.vaultHealth });
+	}
+
+	/** Row of quick-stat pills: reading time, longest streak */
+	private renderQuickStats(container: HTMLElement): void {
+		const { t, stats } = this;
+		if (!stats) return;
+
+		const row = container.createDiv({ cls: 'vd-quick-stats' });
+
+		const pills: Array<{ icon: string; value: string; label: string }> = [
+			{ icon: '⏱️', value: formatNumber(stats.estimatedReadingMinutes) + ' min', label: t.estimatedReading },
+			{ icon: '🏆', value: String(stats.writingStreak.longest) + ' ' + t.days, label: t.longestStreak },
+			{ icon: '📑', value: formatNumber(stats.totalNotes), label: t.totalNotes },
+			{ icon: '📖', value: formatNumber(stats.totalWords), label: t.totalWords },
+		];
+
+		for (const p of pills) {
+			const pill = row.createDiv({ cls: 'vd-quick-pill' });
+			pill.createSpan({ cls: 'vd-quick-pill-icon', text: p.icon });
+			pill.createSpan({ cls: 'vd-quick-pill-value', text: p.value });
+			pill.createSpan({ cls: 'vd-quick-pill-label', text: p.label });
+		}
+	}
+
+	/** Recently modified notes list */
+	private renderRecentNotes(container: HTMLElement): void {
+		const { t, stats } = this;
+		if (!stats || stats.recentNotes.length === 0) return;
+
+		const section = this.createSection(container, t.recentNotes, 'clock');
+
+		for (const note of stats.recentNotes) {
+			const item = section.createDiv({ cls: 'vd-recent-note' });
+			item.createDiv({ cls: 'vd-recent-note-icon', text: '📄' });
+			const info = item.createDiv({ cls: 'vd-recent-note-info' });
+			info.createDiv({ cls: 'vd-recent-note-name', text: note.name });
+			info.createDiv({ cls: 'vd-recent-note-meta', text: `${formatNumber(note.wordCount)} ${t.words}` });
+			item.addEventListener('click', () => this.openFile(note.path));
+			item.addClass('vd-recent-note-clickable');
 		}
 	}
 
@@ -431,7 +538,9 @@ export class DashboardView extends BasesView {
 			'tag': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>',
 			'clock': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
 			'pie-chart': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>',
-			'folder': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>'
+			'folder': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
+			'award': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>',
+			'share': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
 		};
 		return icons[name] || '';
 	}

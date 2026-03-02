@@ -101,6 +101,20 @@ export interface Translations {
 	autoOpenBase: string;
 	autoOpenBaseDesc: string;
 	
+	// New enriched sections
+	vaultHealth: string;
+	vaultHealthDesc: string;
+	estimatedReading: string;
+	estimatedReadingDesc: string;
+	recentNotes: string;
+	achievements: string;
+
+	// Share / marketing
+	shareTitle: string;
+	copyStats: string;
+	copied: string;
+	shareHint: string;
+
 	// Days of week
 	monday: string;
 	tuesday: string;
@@ -223,7 +237,22 @@ export const EN: Translations = {
 	excludePatternsDesc: 'Folder/file patterns to exclude (comma-separated)',
 	heatmapMonths: 'Heatmap Months',
 	heatmapMonthsDesc: 'Number of months to show in heatmap',	autoOpenBase: 'Auto-open Base on startup',
-	autoOpenBaseDesc: 'Path to Base file to open automatically (leave empty to disable)',	
+	autoOpenBaseDesc: 'Path to Base file to open automatically (leave empty to disable)',
+
+	// New enriched sections
+	vaultHealth: 'Vault Health',
+	vaultHealthDesc: 'Composite score: connectivity, tags, activity & depth',
+	estimatedReading: 'Est. Reading Time',
+	estimatedReadingDesc: 'Based on 200 words per minute',
+	recentNotes: 'Recently Modified',
+	achievements: 'Achievements',
+
+	// Share / marketing
+	shareTitle: 'Share Your Stats',
+	copyStats: '📋 Copy Card',
+	copied: 'Copied!',
+	shareHint: 'Paste in Instagram Stories, Twitter/X, or Telegram — share your #PKM journey 🚀',
+
 	// Days of week
 	monday: 'Mon',
 	tuesday: 'Tue',
@@ -348,7 +377,21 @@ export const RU: Translations = {
 	heatmapMonthsDesc: 'Количество месяцев для отображения',
 	autoOpenBase: 'Автооткрытие Base при запуске',
 	autoOpenBaseDesc: 'Путь к Base файлу для автооткрытия (оставьте пустым, чтобы отключить)',
-	
+
+	// New enriched sections
+	vaultHealth: 'Здоровье Хранилища',
+	vaultHealthDesc: 'Составной балл: связность, теги, активность и глубина',
+	estimatedReading: 'Время Чтения',
+	estimatedReadingDesc: 'Из расчёта 200 слов в минуту',
+	recentNotes: 'Недавно Изменённые',
+	achievements: 'Достижения',
+
+	// Share / marketing
+	shareTitle: 'Поделиться Статистикой',
+	copyStats: '📋 Скопировать Карточку',
+	copied: 'Скопировано!',
+	shareHint: 'Вставь в Instagram Stories, Twitter/X или Telegram — поделись своим #PKM путём 🚀',
+
 	// Days of week
 	monday: 'Пн',
 	tuesday: 'Вт',

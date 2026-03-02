@@ -8,7 +8,9 @@ import {
 	DateCount, 
 	FileTypeInfo, 
 	FolderInfo,
-	DashboardSettings
+	DashboardSettings,
+	Achievement,
+	WritingStreak
 } from '../types';
 import {
 	countWords,
@@ -18,7 +20,8 @@ import {
 	getFileExtension,
 	extractTags,
 	extractInternalLinks,
-	extractExternalLinks
+	extractExternalLinks,
+	calculateStreak
 } from '../utils/helpers';
 
 export class VaultAnalyzer {
@@ -232,6 +235,43 @@ export class VaultAnalyzer {
 		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		stats.mostActiveDay = dayNames[maxDay];
 
+		// Writing streak
+		const allActivityDates = [
+			...creationDates.keys(),
+			...modificationDates.keys()
+		];
+		const streakResult = calculateStreak(allActivityDates);
+		stats.writingStreak = {
+			current: streakResult.current,
+			longest: streakResult.longest,
+			lastActive: allActivityDates.sort().reverse()[0] || ''
+		};
+
+		// Reading time estimate @ 200 wpm
+		stats.estimatedReadingMinutes = Math.ceil(stats.totalWords / 200);
+
+		// Recent notes (top 5 recently modified)
+		stats.recentNotes = [...noteInfos]
+			.sort((a, b) => b.modifiedAt - a.modifiedAt)
+			.slice(0, 5);
+
+		// Vault Health Score (composite, 0–100)
+		if (noteInfos.length > 0) {
+			const connectivity = stats.connectivityScore; // 0–100
+			const tagCoverage = Math.min(100, Math.round(((noteInfos.length - stats.notesWithoutTags) / noteInfos.length) * 100));
+			const activityScore = Math.min(100, stats.notesCreatedThisMonth * 5); // 20 notes/month → 100
+			const depthScore = Math.min(100, Math.round((stats.averageWordsPerNote / 500) * 100)); // 500 wpp → 100
+			stats.vaultHealthScore = Math.round(
+				connectivity * 0.35 +
+				tagCoverage * 0.25 +
+				activityScore * 0.25 +
+				depthScore * 0.15
+			);
+		}
+
+		// Achievements
+		stats.achievements = this.computeAchievements(stats, noteInfos.length);
+
 		// File type distribution
 		const extCounts: Map<string, number> = new Map();
 		for (const file of files) {
@@ -264,6 +304,101 @@ export class VaultAnalyzer {
 			.slice(0, 10);
 
 		return stats;
+	}
+
+	private computeAchievements(stats: VaultStatistics, noteCount: number): Achievement[] {
+		const badges: Achievement[] = [
+			{
+				id: 'first-note',
+				icon: '🌱',
+				name: 'First Seed',
+				description: 'Created your first note',
+				unlocked: noteCount >= 1,
+				tier: 'bronze'
+			},
+			{
+				id: 'hundred-notes',
+				icon: '📚',
+				name: 'Century',
+				description: '100+ notes in your vault',
+				unlocked: noteCount >= 100,
+				tier: 'silver'
+			},
+			{
+				id: 'five-hundred-notes',
+				icon: '🏛',
+				name: 'Library',
+				description: '500+ notes — a real knowledge base',
+				unlocked: noteCount >= 500,
+				tier: 'gold'
+			},
+			{
+				id: 'thousand-notes',
+				icon: '🌌',
+				name: 'Universe',
+				description: '1,000+ notes — legendary vault',
+				unlocked: noteCount >= 1000,
+				tier: 'platinum'
+			},
+			{
+				id: 'fifty-k-words',
+				icon: '✍️',
+				name: 'Wordsmith',
+				description: '50,000+ total words written',
+				unlocked: stats.totalWords >= 50000,
+				tier: 'silver'
+			},
+			{
+				id: 'million-words',
+				icon: '📖',
+				name: 'Novelist',
+				description: '1,000,000+ total words — you wrote a novel!',
+				unlocked: stats.totalWords >= 1000000,
+				tier: 'platinum'
+			},
+			{
+				id: 'well-connected',
+				icon: '🕸',
+				name: 'Web Weaver',
+				description: 'Connectivity score above 70%',
+				unlocked: stats.connectivityScore >= 70,
+				tier: 'silver'
+			},
+			{
+				id: 'streak-7',
+				icon: '🔥',
+				name: 'On Fire',
+				description: '7-day writing streak',
+				unlocked: stats.writingStreak.current >= 7,
+				tier: 'bronze'
+			},
+			{
+				id: 'streak-30',
+				icon: '⚡',
+				name: 'Unstoppable',
+				description: '30-day writing streak',
+				unlocked: stats.writingStreak.current >= 30,
+				tier: 'gold'
+			},
+			{
+				id: 'tagger',
+				icon: '🏷',
+				name: 'Tagger',
+				description: '20+ unique tags',
+				unlocked: stats.uniqueTags.length >= 20,
+				tier: 'bronze'
+			},
+			{
+				id: 'health-master',
+				icon: '💎',
+				name: 'Vault Master',
+				description: 'Vault health score above 80',
+				unlocked: stats.vaultHealthScore >= 80,
+				tier: 'platinum'
+			}
+		];
+		// Show unlocked first, then locked
+		return badges.sort((a, b) => Number(b.unlocked) - Number(a.unlocked));
 	}
 
 	private extractTagsFromFile(content: string, metadata: CachedMetadata | null): string[] {
