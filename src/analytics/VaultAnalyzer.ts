@@ -76,7 +76,12 @@ export class VaultAnalyzer {
 			creationsByDate: [],
 			modificationsByDate: [],
 			fileTypeDistribution: [],
-			folderDistribution: []
+			folderDistribution: [],
+			vaultHealthScore: 0,
+			estimatedReadingMinutes: 0,
+			writingStreak: { current: 0, longest: 0, lastActive: '' },
+			recentNotes: [],
+			achievements: []
 		};
 
 		// Analyze markdown files
