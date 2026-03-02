@@ -1,7 +1,7 @@
 {
 	"id": "dastanboard",
 	"name": "Dastanboard",
-	"version": "0.1.0-beta",
+	"version": "0.1.1-beta",
 	"minAppVersion": "1.10.0",
 	"description": "A powerful statistics dashboard for your Obsidian vault. GitHub-style activity heatmaps, link analysis, connectivity scores, tag clouds, writing analytics, and more!",
 	"author": "Dastan Medetbekov",
